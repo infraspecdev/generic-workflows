@@ -1,0 +1,85 @@
+name: Build and Push to ECR
+
+on:
+  workflow_call:
+    inputs:
+      ecr-repository:
+        required: true
+        type: string
+      aws-region:
+        default: ap-south-1
+        type: string
+      dockerfile:
+        default: Dockerfile
+        type: string
+      platforms:
+        default: linux/arm64
+        type: string
+      prefix:
+        default: sha
+        type: string
+      type:
+        default: sha
+        type: string
+
+    secrets:
+      assume-role:
+        required: true
+
+    outputs:
+      description: "The image-tag of pushed image"
+      image-tag: ${{ jobs.build.outputs.image-tag }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.assume-role }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        with:
+          images: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=${{ inputs.type }},prefix=${{ inputs.prefix }}-
+
+      - name: Build and push docker image to Amazon ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Image Tag output
+        id: image-tag
+        run: |
+          IMAGE_TAG=$(echo ${{ steps.meta.outputs.tags }} | awk -F':' '{print $NF}')
+          echo "::notice title=Image tag::${IMAGE_TAG}"
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
