@@ -24,6 +24,9 @@ on:
       type:
         default: sha
         type: string
+      linting:
+        default: true
+        type: boolean
 
     secrets:
       assume-role:
@@ -38,6 +41,7 @@ on:
 
 jobs:
   lint_and_check:
+    if: ${{ inputs.linting }} == true
     uses: ./.github/workflows/java-lint.yml
     secrets:
       gh-token: ${{ secrets.gh-token }}
