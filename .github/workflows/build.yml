@@ -27,8 +27,9 @@ on:
         required: true
 
     outputs:
-      description: "The image-tag of pushed image"
-      image-tag: ${{ jobs.build.outputs.image-tag }}
+      image-tag:
+        description: "Image tag output from build workflow"
+        value: ${{ jobs.build.outputs.image-tag }}
 
 jobs:
   build:
