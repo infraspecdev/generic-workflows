@@ -1,0 +1,52 @@
+name: Java Maven - CI
+
+on:
+  workflow_call:
+    inputs:
+      ecr-repository:
+        required: true
+        type: string
+      aws-region:
+        default: ap-south-1
+        type: string
+      dockerfile:
+        default: Dockerfile
+        type: string
+      platforms:
+        default: linux/arm64
+        type: string
+      prefix:
+        default: sha
+        type: string
+      type:
+        default: sha
+        type: string
+
+    secrets:
+      assume-role:
+        required: true
+      gh-token:
+        required: true
+
+    outputs:
+      image-tag:
+        description: "Image tag output from build workflow"
+        value: ${{ jobs.build.outputs.image-tag }}
+
+jobs:
+  lint_and_check:
+    uses: ./.github/workflows/java-lint.yml
+    secrets:
+      gh-token: ${{ secrets.gh-token }}
+
+  test:
+    uses: ./.github/workflows/maven-test.yml
+
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: test
+    with:
+      ecr-repository: ${{ inputs.ecr-repository }}
+      aws-region: ${{ inputs.aws-region }}
+    secrets:
+      assume-role: ${{ secrets.assume-role }}

@@ -1,0 +1,32 @@
+name: Java - Linters and Analysis
+
+on:
+  workflow_call:
+    secrets:
+      gh-token:
+        required: true
+
+jobs:
+  lint_and_check:
+    name: Linters Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Lint Code Base
+        uses: super-linter/super-linter@v6.7.0
+        env:
+          VALIDATE_JAVA: true
+          VALIDATE_GOOGLE_JAVA_FORMAT: true
+          # To report GitHub Actions status checks
+          GITHUB_TOKEN: ${{ secrets.gh-token }}
