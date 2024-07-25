@@ -6,6 +6,9 @@ on:
       ecr-repository:
         required: true
         type: string
+      java-version:
+        required: true
+        type: string
       aws-region:
         default: ap-south-1
         type: string
@@ -41,6 +44,8 @@ jobs:
 
   test:
     uses: ./.github/workflows/maven-test.yml
+    with:
+      java-version: ${{ inputs.java-version }}
 
   build:
     uses: ./.github/workflows/build.yml
