@@ -1,4 +1,4 @@
-name: ECS- Deployment
+name: ECS - Deployment
 
 on:
   workflow_call:
@@ -21,6 +21,7 @@ on:
 
 jobs:
   deploy:
+    name: ECS Deployment
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -91,3 +92,6 @@ jobs:
             aws ecs deregister-task-definition --task-definition ${{ inputs.ecs-service }}:${{ steps.download-new-task-definition.outputs.revision }}
             exit 1
           fi
+
+      - name: De-register previous revision
+        run: aws ecs deregister-task-definition --task-definition ${{ inputs.ecs-service }}:${{ steps.old-task-revision.outputs.revision }}
