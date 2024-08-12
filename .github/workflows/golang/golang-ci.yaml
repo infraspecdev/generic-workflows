@@ -35,7 +35,7 @@ on:
         description: 'A prefix to use for the Docker image tags'
         default: sha
         type: string
-      type:
+      tag-type:
         description: 'The type of build (e.g., release, snapshot)'
         default: sha
         type: string
@@ -82,7 +82,7 @@ jobs:
       dockerfile: ${{ inputs.dockerfile }}
       platforms: ${{ inputs.platforms }}
       prefix: ${{ inputs.prefix }}
-      type: ${{ inputs.type }}
+      tag-type: ${{ inputs.tag-type }}
       use-private-module: ${{ inputs.use-private-module }}
       github-owner: ${{ inputs.github-owner }}
     secrets:
