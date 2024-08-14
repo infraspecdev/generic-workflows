@@ -6,9 +6,6 @@ on:
       use-private-module:
         description: 'Flag to indicate if a private module should be used in the build'
         type: boolean
-      github-owner:
-        description: 'The GitHub owner of the private module repository'
-        type: string
       ecr-repository:
         description: 'The name of the ECR repository to push the Docker image to'
         type: string
@@ -27,13 +24,16 @@ on:
       tag-type:
         description: 'The type of build (e.g., release, snapshot)'
         type: string
-
+      github-app-id:
+        description: 'The ID of the Github App'
+        type: number
     secrets:
       ASSUME_ROLE:
         required: true
-      GH_TOKEN:
-        description: 'The GitHub token to use'
+      APP_PRIVATE_KEY:
+        description: 'The private key for the GitHub App'
         required: true
+
 
     outputs:
       image-tag:
@@ -80,6 +80,14 @@ jobs:
           tags: |
             type=${{ inputs.tag-type }},prefix=${{ inputs.prefix }}-
 
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ inputs.github-app-id }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: Build and push docker image to Amazon ECR
         uses: docker/build-push-action@v5
         env:
@@ -95,9 +103,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:buildcache
           cache-to: type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
           secrets: |
-              GH_TOKEN=${{ secrets.GH_TOKEN }}
-          build-args: |
-              GH_OWNER=${{ inputs.github-owner }}
+              GH_TOKEN=${{ steps.generate-token.outputs.token }}
    
       - name: Image Tag output
         id: image-tag

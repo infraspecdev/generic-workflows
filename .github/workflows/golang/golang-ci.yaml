@@ -11,10 +11,9 @@ on:
         description: 'Flag to indicate if a private module should be used in the build'
         default: false
         type: boolean
-      github-owner:
-        description: 'The GitHub owner of the private module repository'
-        required: false
-        type: string
+      github-app-id:
+        description: 'The ID of the GitHub App to use for authentication'
+        type: number
       ecr-repository:
         description: 'The name of the ECR repository to push the Docker image to'
         required: true
@@ -40,9 +39,8 @@ on:
         default: sha
         type: string
     secrets:
-      GH_TOKEN:
-        description: 'The GitHub token to use for importing private module'
-        required: false
+      APP_PRIVATE_KEY:
+        description: 'The private key of the GitHub App'
       ASSUME_ROLE:
         description: 'The role to assume for AWS operations'
         required: true
@@ -59,9 +57,9 @@ jobs:
     with:
       go-version: ${{ inputs.go-version }}
       use-private-module: ${{ inputs.use-private-module }}
-      github-owner: ${{ inputs.github-owner }}
+      github-app-id: ${{ inputs.github-app-id }}
     secrets:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
 
   test:
     uses: ./.github/workflows/golangci-test.yaml
@@ -69,9 +67,9 @@ jobs:
     with:
       go-version: ${{ inputs.go-version }}
       use-private-module: ${{ inputs.use-private-module }}
-      github-owner: ${{ inputs.github-owner }}
+      github-app-id: ${{ inputs.github-app-id }}
     secrets:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
 
   build:
     uses: ./.github/workflows/golangci-build.yaml
@@ -84,7 +82,7 @@ jobs:
       prefix: ${{ inputs.prefix }}
       tag-type: ${{ inputs.tag-type }}
       use-private-module: ${{ inputs.use-private-module }}
-      github-owner: ${{ inputs.github-owner }}
+      github-app-id: ${{ inputs.github-app-id }}
     secrets:
       ASSUME_ROLE: ${{ secrets.ASSUME_ROLE }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
