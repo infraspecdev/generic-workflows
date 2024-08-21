@@ -53,7 +53,7 @@ permissions:
   
 jobs:
   lint:
-    uses: ./.github/workflows/golang/golangci-lint.yaml
+    uses: ./.github/workflows/golangci-lint.yml
     with:
       go-version: ${{ inputs.go-version }}
       use-private-module: ${{ inputs.use-private-module }}
@@ -62,7 +62,7 @@ jobs:
       APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
 
   test:
-    uses: ./.github/workflows/golang/golangci-test.yaml
+    uses: ./.github/workflows/golangci-test.yml
     needs: lint
     with:
       go-version: ${{ inputs.go-version }}
@@ -72,7 +72,7 @@ jobs:
       APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
 
   build:
-    uses: ./.github/workflows/golang/golangci-build.yaml
+    uses: ./.github/workflows/golangci-build.yml
     needs: test
     with:
       ecr-repository: ${{ inputs.ecr-repository }}
